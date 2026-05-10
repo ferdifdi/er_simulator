@@ -11,9 +11,7 @@ import java.util.List;
 
 /**
  * Spring Data JPA repository for Patient entities.
- *
- * TODO #Ferdi: Spring Data will generate implementations from method names.
- *              Verify queries return expected sorting (by ESI, by arrival).
+ * Spring Data generates implementations from the method names below.
  */
 @Repository
 public interface PatientRepository extends JpaRepository<Patient, String> {
