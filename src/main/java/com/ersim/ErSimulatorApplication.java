@@ -6,7 +6,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 /**
  * Main entry point for the ER Triage Simulator Spring Boot application.
  *
- * TODO #Ferdi: bootstrap TriageService thread pool on startup (ApplicationRunner).
+ * The TriageService thread pool and patient-arrival thread are bootstrapped
+ * via @PostConstruct on TriageService.init().
+ *
  * TODO #Sruthi: optionally launch the Swing dashboard from a CommandLineRunner
  *               when a "--gui" flag is passed.
  */
