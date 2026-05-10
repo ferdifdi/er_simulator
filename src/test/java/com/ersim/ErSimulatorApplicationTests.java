@@ -5,12 +5,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 /**
  * Smoke test that verifies the Spring application context loads.
- *
- * TODO #Ferdi/#Sruthi: this test will be the first sanity check that all
- *               beans wire together correctly. No implementation needed
- *               beyond context loading.
+ * Sanity check that all beans wire together correctly.
  */
-@SpringBootTest
+@SpringBootTest(properties = {
+        "er.rooms.count=0",
+        "er.simulation.autostart=false"
+})
 class ErSimulatorApplicationTests {
 
     @Test
