@@ -12,8 +12,6 @@ import java.time.LocalDateTime;
  *
  * Implements Comparable so that PriorityBlockingQueue can order patients
  * by ESI severity (lowest ordinal == highest priority).
- *
- * TODO #Ferdi: full implementation of fields, getters/setters, compareTo.
  */
 @Entity
 @Table(name = "patients")
@@ -35,25 +33,29 @@ public class Patient implements Comparable<Patient> {
     private PatientStatus status;
 
     public Patient() {
-        // TODO #Ferdi: required no-arg constructor for JPA — leave blank
     }
 
     public Patient(String patientId, String name, int age, TriageLevel triageLevel) {
-        // TODO #Ferdi: assign fields, set arrivalTime to now, default status to WAITING,
-        //              and derive priority from triageLevel.ordinal().
+        this.patientId = patientId;
+        this.name = name;
+        this.age = age;
+        this.triageLevel = triageLevel;
+        this.priority = triageLevel != null ? triageLevel.ordinal() : Integer.MAX_VALUE;
+        this.arrivalTime = LocalDateTime.now();
+        this.status = PatientStatus.WAITING;
     }
 
     @Override
     public int compareTo(Patient other) {
-        // TODO #Ferdi: order by triageLevel ordinal first, then by arrivalTime
-        //              (earlier arrival wins). Used by PriorityBlockingQueue.
-        return 0;
+        int byLevel = Integer.compare(
+                this.triageLevel != null ? this.triageLevel.ordinal() : Integer.MAX_VALUE,
+                other.triageLevel != null ? other.triageLevel.ordinal() : Integer.MAX_VALUE);
+        if (byLevel != 0) return byLevel;
+        if (this.arrivalTime == null && other.arrivalTime == null) return 0;
+        if (this.arrivalTime == null) return 1;
+        if (other.arrivalTime == null) return -1;
+        return this.arrivalTime.compareTo(other.arrivalTime);
     }
-
-    // ------------------------------------------------------------------
-    // Getters / Setters
-    // TODO #Ferdi: implement all getters and setters
-    // ------------------------------------------------------------------
 
     public String getPatientId() { return patientId; }
     public void setPatientId(String patientId) { this.patientId = patientId; }
@@ -66,8 +68,8 @@ public class Patient implements Comparable<Patient> {
 
     public TriageLevel getTriageLevel() { return triageLevel; }
     public void setTriageLevel(TriageLevel triageLevel) {
-        // TODO #Ferdi: also update priority field whenever triageLevel changes
         this.triageLevel = triageLevel;
+        this.priority = triageLevel != null ? triageLevel.ordinal() : Integer.MAX_VALUE;
     }
 
     public int getPriority() { return priority; }
