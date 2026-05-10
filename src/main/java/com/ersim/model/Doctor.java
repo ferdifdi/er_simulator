@@ -3,9 +3,6 @@ package com.ersim.model;
 /**
  * In-memory model of a Doctor assigned to a TreatmentRoom.
  * Not persisted (yet) — held by TreatmentRoom thread.
- *
- * TODO #Sruthi: full implementation of treat() and setAvailable() with
- *               appropriate synchronization on isAvailable.
  */
 public class Doctor {
 
@@ -15,11 +12,14 @@ public class Doctor {
     private boolean isAvailable;
 
     public Doctor() {
-        // TODO #Sruthi: empty constructor
+        // empty constructor
     }
 
     public Doctor(String doctorId, String name, String specialization) {
-        // TODO #Sruthi: assign fields, default isAvailable = true
+        this.doctorId = doctorId;
+        this.name = name;
+        this.specialization = specialization;
+        this.isAvailable = true;
     }
 
     /**
@@ -27,18 +27,26 @@ public class Doctor {
      * determined by the patient's triage level.
      */
     public void treat(Patient p) {
-        // TODO #Sruthi: simulate treatment time (Thread.sleep keyed off triage level),
-        //               must be safe to call from a TreatmentRoom worker thread.
+        // Calculate treatment time: ESI_1=5000ms, ESI_2=4000ms, ESI_3=3000ms, ESI_4=2000ms, ESI_5=1000ms
+        long treatmentTime = (5L - p.getTriageLevel().ordinal()) * 1000;
+        
+        setAvailable(false);
+        try {
+            Thread.sleep(treatmentTime);
+        } catch (InterruptedException e) {
+            // Restore interrupt flag
+            Thread.currentThread().interrupt();
+        } finally {
+            setAvailable(true);
+        }
     }
 
     public synchronized void setAvailable(boolean b) {
-        // TODO #Sruthi: update isAvailable atomically
         this.isAvailable = b;
     }
 
     // ------------------------------------------------------------------
     // Getters
-    // TODO #Sruthi: implement getters as needed
     // ------------------------------------------------------------------
 
     public String getDoctorId() { return doctorId; }
