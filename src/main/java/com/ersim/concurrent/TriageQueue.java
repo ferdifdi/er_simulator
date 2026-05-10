@@ -4,6 +4,9 @@ import com.ersim.model.Patient;
 import com.ersim.model.enums.TriageLevel;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.locks.ReentrantLock;
@@ -13,9 +16,6 @@ import java.util.concurrent.locks.ReentrantLock;
  * Wraps a PriorityBlockingQueue and a ReentrantLock for compound operations
  * such as upgrading a patient's triage level (which requires removing and
  * re-inserting the patient atomically).
- *
- * TODO #Ferdi: full implementation, including thread-safe upgradeLevel
- *              and snapshot operations.
  */
 @Component
 public class TriageQueue {
@@ -27,22 +27,40 @@ public class TriageQueue {
      * Insert a patient into the priority queue.
      */
     public void enqueue(Patient p) {
-        // TODO #Ferdi: add patient to queue (PriorityBlockingQueue.add is thread-safe)
+        if (p == null) return;
+        queue.add(p);
     }
 
     /**
      * Remove and return the highest-priority patient. Blocks if empty.
      */
     public Patient dequeue() throws InterruptedException {
-        // TODO #Ferdi: return queue.take()
-        return null;
+        return queue.take();
     }
 
     /**
      * Atomically remove a patient by id, update their triage level, then re-insert.
      */
     public void upgradeLevel(String id, TriageLevel level) {
-        // TODO #Ferdi: acquire lock, find by id, remove, set new level, re-add, release lock
+        if (id == null || level == null) return;
+        lock.lock();
+        try {
+            Patient target = null;
+            for (Iterator<Patient> it = queue.iterator(); it.hasNext(); ) {
+                Patient p = it.next();
+                if (id.equals(p.getPatientId())) {
+                    target = p;
+                    break;
+                }
+            }
+            if (target != null) {
+                queue.remove(target);
+                target.setTriageLevel(level);
+                queue.add(target);
+            }
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**
@@ -50,12 +68,12 @@ public class TriageQueue {
      * sorted by priority. Useful for the GUI and REST /queue endpoint.
      */
     public List<Patient> getQueueSnapshot() {
-        // TODO #Ferdi: return a sorted, immutable copy of the queue contents
-        return List.of();
+        List<Patient> copy = new ArrayList<>(queue);
+        Collections.sort(copy);
+        return Collections.unmodifiableList(copy);
     }
 
     public int size() {
-        // TODO #Ferdi: return queue.size()
-        return 0;
+        return queue.size();
     }
 }
