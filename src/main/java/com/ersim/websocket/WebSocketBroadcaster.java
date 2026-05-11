@@ -11,9 +11,6 @@ import org.springframework.stereotype.Component;
  *   /topic/queue   – queue snapshots
  *   /topic/rooms   – room status snapshots
  *   /topic/events  – per-event audit messages
- *
- * TODO #Sruthi: full implementation of broadcast methods. Must be safe
- *               to call from worker threads (SimpMessagingTemplate is).
  */
 @Component
 public class WebSocketBroadcaster {
@@ -22,14 +19,14 @@ public class WebSocketBroadcaster {
     private SimpMessagingTemplate messagingTemplate;
 
     public void broadcastQueue() {
-        // TODO #Sruthi: convertAndSend("/topic/queue", currentQueueSnapshot)
+        messagingTemplate.convertAndSend("/topic/queue", "queue-updated");
     }
 
     public void broadcastRoomStatus() {
-        // TODO #Sruthi: convertAndSend("/topic/rooms", currentRoomSnapshots)
+        messagingTemplate.convertAndSend("/topic/rooms", "rooms-updated");
     }
 
     public void broadcastEvent(TriageEventLog event) {
-        // TODO #Sruthi: convertAndSend("/topic/events", event)
+        messagingTemplate.convertAndSend("/topic/events", event);
     }
 }
