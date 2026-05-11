@@ -46,8 +46,8 @@ class PatientArrivalThreadTest {
         thread.start();
         
         patientThread.stop();
-        boolean joined = thread.join(1000);
+        thread.join(1000);
         
-        assertTrue(joined, "Thread should join within 1 second of stop()");
+        assertFalse(thread.isAlive(), "Thread should have stopped within 1 second of stop()");
     }
 }
