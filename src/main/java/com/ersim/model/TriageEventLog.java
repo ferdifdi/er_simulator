@@ -9,10 +9,6 @@ import java.time.LocalDateTime;
  * Immutable audit record of a single triage event for a patient.
  * Used to compute statistics like average wait time, throughput,
  * and event counts per level.
- *
- * TODO #Sruthi: full implementation including the getWaitDuration()
- *               helper that returns elapsed time between this event and
- *               the patient's arrivalTime.
  */
 @Entity
 @Table(name = "triage_event_log")
@@ -33,11 +29,14 @@ public class TriageEventLog {
     private LocalDateTime timestamp;
 
     public TriageEventLog() {
-        // TODO #Sruthi: required no-arg constructor for JPA
+        // required no-arg constructor for JPA
     }
 
     public TriageEventLog(Patient patient, EventType eventType, String roomId) {
-        // TODO #Sruthi: assign fields and set timestamp to LocalDateTime.now()
+        this.patient = patient;
+        this.eventType = eventType;
+        this.roomId = roomId;
+        this.timestamp = LocalDateTime.now();
     }
 
     /**
@@ -45,13 +44,11 @@ public class TriageEventLog {
      * and this event timestamp.
      */
     public long getWaitDuration() {
-        // TODO #Sruthi: compute Duration.between(patient.arrivalTime, this.timestamp).toSeconds()
-        return 0L;
+        return java.time.Duration.between(patient.getArrivalTime(), this.timestamp).toSeconds();
     }
 
     // ------------------------------------------------------------------
     // Getters / Setters
-    // TODO #Sruthi: implement all getters and setters
     // ------------------------------------------------------------------
 
     public Long getLogId() { return logId; }
