@@ -27,8 +27,8 @@ public class Doctor {
      * determined by the patient's triage level.
      */
     public void treat(Patient p) {
-        // Calculate treatment time: ESI_1=5000ms, ESI_2=4000ms, ESI_3=3000ms, ESI_4=2000ms, ESI_5=1000ms
-        long treatmentTime = (5L - p.getTriageLevel().ordinal()) * 1000;
+        // ESI_1=20s, ESI_2=16s, ESI_3=12s, ESI_4=10s, ESI_5=8s
+        long treatmentTime = (20L - p.getTriageLevel().ordinal() * 4) * 1000;
         
         setAvailable(false);
         try {
