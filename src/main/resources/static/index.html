@@ -152,6 +152,28 @@
     button:hover { background: #333; }
     button:active { background: #000; }
 
+    .btn-sm {
+      padding: 3px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #111;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .btn-sm:hover { background: #333; }
+    .btn-discharge { background: #c0392b; }
+    .btn-discharge:hover { background: #a93226; }
+
+    select.level-select {
+      padding: 3px 6px;
+      font-size: 11px;
+      border: 1px solid #ccc;
+      font-family: inherit;
+      background: #fff;
+    }
+
     #admit-msg {
       font-size: 12px;
       color: #555;
@@ -210,6 +232,7 @@
             <th>Age</th>
             <th>ESI Level</th>
             <th>Arrived</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -226,6 +249,7 @@
             <th>Status</th>
             <th>Patient</th>
             <th>Doctor</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -273,6 +297,34 @@
       return 'room-cleaning';
     }
 
+    const ESI_VALUES = [
+      'ESI_1_IMMEDIATE', 'ESI_2_EMERGENT', 'ESI_3_URGENT',
+      'ESI_4_LESS_URGENT', 'ESI_5_NON_URGENT'
+    ];
+
+    function levelSelectHtml(currentLevel) {
+      return `<select class="level-select">${
+        ESI_VALUES.map(v =>
+          `<option value="${v}"${v === currentLevel ? ' selected' : ''}>${ESI_LABEL[v]}</option>`
+        ).join('')
+      }</select>`;
+    }
+
+    async function changeLevel(patientId, newLevel) {
+      await fetch(`/patients/${patientId}/level`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newLevel }),
+      });
+      loadQueue();
+    }
+
+    async function discharge(patientId) {
+      await fetch(`/patients/${patientId}`, { method: 'DELETE' });
+      loadRooms();
+      loadQueue();
+    }
+
     async function loadQueue() {
       const tbody = document.querySelector('#queue-table tbody');
       try {
@@ -280,7 +332,7 @@
         const data = await res.json();
         tbody.innerHTML = '';
         if (!data.length) {
-          tbody.innerHTML = '<tr><td colspan="4" class="empty">No patients waiting</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="5" class="empty">No patients waiting</td></tr>';
         } else {
           data.forEach(p => {
             const tr = document.createElement('tr');
@@ -288,13 +340,18 @@
               `<td>${p.name || '—'}</td>` +
               `<td>${p.age != null ? p.age : '—'}</td>` +
               `<td class="${ESI_CLASS[p.triageLevel] || ''}">${ESI_LABEL[p.triageLevel] || p.triageLevel || '—'}</td>` +
-              `<td>${timeOf(p.arrivalTime)}</td>`;
+              `<td>${timeOf(p.arrivalTime)}</td>` +
+              `<td style="white-space:nowrap">${levelSelectHtml(p.triageLevel)}&nbsp;<button class="btn-sm" data-id="${p.patientId}">Set</button></td>`;
+            tr.querySelector('button').addEventListener('click', () => {
+              const sel = tr.querySelector('select.level-select');
+              changeLevel(p.patientId, sel.value);
+            });
             tbody.appendChild(tr);
           });
         }
         document.getElementById('queue-ts').textContent = stamp();
       } catch (_) {
-        tbody.innerHTML = '<tr><td colspan="4" class="empty">Could not reach server</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="empty">Could not reach server</td></tr>';
       }
     }
 
@@ -305,21 +362,30 @@
         const data = await res.json();
         tbody.innerHTML = '';
         if (!data.length) {
-          tbody.innerHTML = '<tr><td colspan="4" class="empty">No rooms configured</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="5" class="empty">No rooms configured</td></tr>';
         } else {
           data.forEach(r => {
             const tr = document.createElement('tr');
+            const actionCell = r.status === 'OCCUPIED' && r.currentPatientId
+              ? `<button class="btn-sm btn-discharge" data-id="${r.currentPatientId}">Discharge</button>`
+              : '—';
             tr.innerHTML =
               `<td>${r.roomId || '—'}</td>` +
               `<td class="${roomClass(r.status)}">${fmt(r.status)}</td>` +
               `<td>${r.currentPatientName || '—'}</td>` +
-              `<td>${r.doctorName || '—'}</td>`;
+              `<td>${r.doctorName || '—'}</td>` +
+              `<td>${actionCell}</td>`;
+            if (r.status === 'OCCUPIED' && r.currentPatientId) {
+              tr.querySelector('.btn-discharge').addEventListener('click', () => {
+                discharge(r.currentPatientId);
+              });
+            }
             tbody.appendChild(tr);
           });
         }
         document.getElementById('rooms-ts').textContent = stamp();
       } catch (_) {
-        tbody.innerHTML = '<tr><td colspan="4" class="empty">Could not reach server</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="empty">Could not reach server</td></tr>';
       }
     }
 
