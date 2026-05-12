@@ -36,8 +36,12 @@ public class PatientArrivalThread implements Runnable {
     @Override
     public void run() {
         while (running) {
-            Patient patient = generatePatient();
-            admitter.accept(patient);
+            try {
+                Patient patient = generatePatient();
+                admitter.accept(patient);
+            } catch (Exception e) {
+                System.err.println("[PatientArrivalThread] error admitting patient: " + e.getMessage());
+            }
             try {
                 Thread.sleep(1000 + random.nextInt(3000));
             } catch (InterruptedException e) {
