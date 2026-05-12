@@ -5,6 +5,7 @@ import com.ersim.model.enums.TriageLevel;
 
 import java.util.Random;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 /**
  * Background thread that simulates patient arrivals at the ER. Periodically
@@ -14,6 +15,7 @@ import java.util.UUID;
 public class PatientArrivalThread implements Runnable {
 
     private final TriageQueue queue;
+    private final Consumer<Patient> admitter;
     private final Random random = new Random();
     private volatile boolean running = true;
     private static final String[] FAKE_NAMES = {
@@ -23,13 +25,19 @@ public class PatientArrivalThread implements Runnable {
 
     public PatientArrivalThread(TriageQueue queue) {
         this.queue = queue;
+        this.admitter = queue::enqueue;
+    }
+
+    public PatientArrivalThread(Consumer<Patient> admitter) {
+        this.queue = null;
+        this.admitter = admitter;
     }
 
     @Override
     public void run() {
         while (running) {
             Patient patient = generatePatient();
-            queue.enqueue(patient);
+            admitter.accept(patient);
             try {
                 Thread.sleep(1000 + random.nextInt(3000));
             } catch (InterruptedException e) {
