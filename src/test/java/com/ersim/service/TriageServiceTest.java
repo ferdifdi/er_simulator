@@ -32,8 +32,8 @@ import static org.mockito.Mockito.*;
  */
 @SpringBootTest
 @TestPropertySource(properties = {
-        "er.rooms.count=0",
-        "er.simulation.autostart=false"
+        "ersim.rooms.count=0",
+        "ersim.simulation.autostart=false"
 })
 class TriageServiceTest {
 
