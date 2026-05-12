@@ -12,68 +12,77 @@
       font-size: 14px;
       background: #fff;
       color: #111;
-      padding: 28px 32px;
-      max-width: 1100px;
     }
 
-    header {
-      margin-bottom: 28px;
-      border-bottom: 2px solid #111;
-      padding-bottom: 12px;
+    /* ── Login overlay ── */
+    #login-overlay {
+      position: fixed; inset: 0;
+      background: #f5f5f5;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100;
     }
-
-    header h1 {
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
+    #login-box {
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 40px 48px;
+      min-width: 320px;
     }
-
-    header p {
-      font-size: 12px;
-      color: #888;
-      margin-top: 3px;
+    #login-box h2 {
+      font-size: 16px; font-weight: 700;
+      margin-bottom: 24px;
+      text-transform: none; letter-spacing: 0; color: #111;
     }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 40px;
-      margin-top: 28px;
+    #login-box .field { margin-bottom: 14px; }
+    #login-box label {
+      display: block; font-size: 11px; font-weight: 600;
+      color: #555; text-transform: uppercase; letter-spacing: 0.05em;
+      margin-bottom: 4px;
     }
+    #login-box input {
+      width: 100%; padding: 7px 8px;
+      border: 1px solid #ccc; font-size: 13px;
+      font-family: inherit; outline: none;
+    }
+    #login-box input:focus { border-color: #111; }
+    #login-btn {
+      width: 100%; margin-top: 6px;
+      padding: 9px; background: #111; color: #fff;
+      border: none; font-size: 13px; font-weight: 600;
+      font-family: inherit; cursor: pointer;
+    }
+    #login-btn:hover { background: #333; }
+    #login-err { color: #c0392b; font-size: 12px; margin-top: 8px; min-height: 16px; }
+    .login-hint { font-size: 11px; color: #aaa; margin-top: 16px; line-height: 1.7; }
 
+    /* ── Main app (hidden until logged in) ── */
+    #app { display: none; padding: 28px 32px; max-width: 1100px; }
+
+    header { margin-bottom: 28px; border-bottom: 2px solid #111; padding-bottom: 12px;
+             display: flex; justify-content: space-between; align-items: flex-end; }
+    header h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+    header p  { font-size: 12px; color: #888; margin-top: 3px; }
+    #user-info { font-size: 12px; color: #555; text-align: right; }
+    #logout-btn {
+      margin-top: 4px; padding: 4px 10px; font-size: 11px;
+      background: #111; color: #fff; border: none; cursor: pointer;
+      font-family: inherit; display: block; margin-left: auto;
+    }
+    #logout-btn:hover { background: #333; }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 28px; }
     section { margin-bottom: 32px; }
 
     h2 {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #888;
-      margin-bottom: 10px;
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: #888; margin-bottom: 10px;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th {
-      text-align: left;
-      padding: 6px 10px;
-      font-size: 11px;
-      font-weight: 600;
-      color: #555;
-      border-bottom: 1px solid #ddd;
-      background: #fafafa;
+      text-align: left; padding: 6px 10px; font-size: 11px;
+      font-weight: 600; color: #555; border-bottom: 1px solid #ddd; background: #fafafa;
     }
-
-    td {
-      padding: 7px 10px;
-      border-bottom: 1px solid #f0f0f0;
-      vertical-align: middle;
-    }
-
+    td { padding: 7px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
     tbody tr:hover td { background: #f8f8f8; }
 
     .esi1 { color: #c0392b; font-weight: 700; }
@@ -86,179 +95,260 @@
     .room-occupied  { color: #2471a3; font-weight: 600; }
     .room-cleaning  { color: #888; }
 
-    .empty {
-      color: #aaa;
-      font-style: italic;
-      padding: 14px 10px;
-      font-size: 12px;
-    }
-
-    .updated {
-      font-size: 11px;
-      color: #bbb;
-      margin-top: 6px;
-      text-align: right;
-    }
+    .empty { color: #aaa; font-style: italic; padding: 14px 10px; font-size: 12px; }
+    .updated { font-size: 11px; color: #bbb; margin-top: 6px; text-align: right; }
 
     /* Admit form */
-    form {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      align-items: flex-end;
-    }
-
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
+    form { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+    .field { display: flex; flex-direction: column; gap: 4px; }
     .field label {
-      font-size: 11px;
-      font-weight: 600;
-      color: #555;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+      font-size: 11px; font-weight: 600; color: #555;
+      text-transform: uppercase; letter-spacing: 0.05em;
     }
-
     input, select {
-      padding: 6px 8px;
-      border: 1px solid #ccc;
-      border-radius: 0;
-      font-size: 13px;
-      font-family: inherit;
-      background: #fff;
-      color: #111;
-      outline: none;
+      padding: 6px 8px; border: 1px solid #ccc; border-radius: 0;
+      font-size: 13px; font-family: inherit; background: #fff; color: #111; outline: none;
     }
-
     input:focus, select:focus { border-color: #111; }
-
     input[type="number"] { width: 70px; }
 
     button {
-      padding: 7px 16px;
-      background: #111;
-      color: #fff;
-      border: none;
-      font-size: 13px;
-      font-family: inherit;
-      font-weight: 600;
-      cursor: pointer;
-      letter-spacing: 0.02em;
+      padding: 7px 16px; background: #111; color: #fff; border: none;
+      font-size: 13px; font-family: inherit; font-weight: 600;
+      cursor: pointer; letter-spacing: 0.02em;
     }
-
     button:hover { background: #333; }
     button:active { background: #000; }
 
     .btn-sm {
-      padding: 3px 10px;
-      font-size: 11px;
-      font-weight: 600;
-      background: #111;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-      font-family: inherit;
+      padding: 3px 10px; font-size: 11px; font-weight: 600;
+      background: #111; color: #fff; border: none; cursor: pointer; font-family: inherit;
     }
     .btn-sm:hover { background: #333; }
     .btn-discharge { background: #c0392b; }
     .btn-discharge:hover { background: #a93226; }
 
     select.level-select {
-      padding: 3px 6px;
-      font-size: 11px;
-      border: 1px solid #ccc;
-      font-family: inherit;
-      background: #fff;
+      padding: 3px 6px; font-size: 11px; border: 1px solid #ccc; font-family: inherit;
     }
 
-    #admit-msg {
-      font-size: 12px;
-      color: #555;
-      margin-top: 8px;
-      min-height: 18px;
-    }
-
+    #admit-msg { font-size: 12px; color: #555; margin-top: 8px; min-height: 18px; }
     #admit-msg.ok  { color: #27ae60; }
     #admit-msg.err { color: #c0392b; }
 
-    @media (max-width: 680px) {
-      .grid { grid-template-columns: 1fr; }
-      body  { padding: 16px; }
+    /* Role badge */
+    .badge {
+      display: inline-block; padding: 2px 8px; font-size: 10px; font-weight: 700;
+      letter-spacing: 0.05em; text-transform: uppercase; border-radius: 2px;
     }
+    .badge-admin  { background: #2c3e50; color: #fff; }
+    .badge-nurse  { background: #2980b9; color: #fff; }
+    .badge-doctor { background: #27ae60; color: #fff; }
+
+    /* WS indicator */
+    #ws-status { font-size: 11px; margin-top: 2px; }
+    #ws-status.connected    { color: #27ae60; }
+    #ws-status.disconnected { color: #c0392b; }
+
+    @media (max-width: 680px) { .grid { grid-template-columns: 1fr; } body { padding: 16px; } }
   </style>
 </head>
 <body>
-  <header>
-    <h1>ER Triage Simulator</h1>
-    <p>Live dashboard &mdash; auto-refreshes every 4 seconds</p>
-  </header>
 
-  <section>
-    <h2>Admit Patient</h2>
-    <form id="admit-form">
+  <!-- ── Login overlay ── -->
+  <div id="login-overlay">
+    <div id="login-box">
+      <h2>ER Triage Simulator — Sign In</h2>
       <div class="field">
-        <label for="name">Name</label>
-        <input id="name" type="text" placeholder="Full name" required>
+        <label for="l-user">Username</label>
+        <input id="l-user" type="text" placeholder="admin / nurse / doctor" autocomplete="username">
       </div>
       <div class="field">
-        <label for="age">Age</label>
-        <input id="age" type="number" min="0" max="130" placeholder="0" required>
+        <label for="l-pass">Password</label>
+        <input id="l-pass" type="password" placeholder="Password" autocomplete="current-password">
       </div>
-      <div class="field">
-        <label for="level">Triage Level</label>
-        <select id="level">
-          <option value="ESI_1_IMMEDIATE">ESI 1 — Immediate</option>
-          <option value="ESI_2_EMERGENT">ESI 2 — Emergent</option>
-          <option value="ESI_3_URGENT" selected>ESI 3 — Urgent</option>
-          <option value="ESI_4_LESS_URGENT">ESI 4 — Less Urgent</option>
-          <option value="ESI_5_NON_URGENT">ESI 5 — Non-Urgent</option>
-        </select>
-      </div>
-      <button type="submit">Admit</button>
-    </form>
-    <div id="admit-msg"></div>
-  </section>
-
-  <div class="grid">
-    <section>
-      <h2>Waiting Queue</h2>
-      <table id="queue-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Age</th>
-            <th>ESI Level</th>
-            <th>Arrived</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <div class="updated" id="queue-ts"></div>
-    </section>
-
-    <section>
-      <h2>Treatment Rooms</h2>
-      <table id="rooms-table">
-        <thead>
-          <tr>
-            <th>Room</th>
-            <th>Status</th>
-            <th>Patient</th>
-            <th>Doctor</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <div class="updated" id="rooms-ts"></div>
-    </section>
+      <button id="login-btn">Sign In</button>
+      <div id="login-err"></div>
+      <p class="login-hint">
+        admin&nbsp;/&nbsp;admin123 &nbsp;·&nbsp;
+        nurse&nbsp;/&nbsp;nurse123 &nbsp;·&nbsp;
+        doctor&nbsp;/&nbsp;doc123
+      </p>
+    </div>
   </div>
 
+  <!-- ── Main app ── -->
+  <div id="app">
+    <header>
+      <div>
+        <h1>ER Triage Simulator</h1>
+        <p>Live dashboard &mdash; real-time via WebSocket</p>
+      </div>
+      <div id="user-info">
+        <span id="user-label"></span>
+        <span id="ws-status" class="disconnected">&#9679; Disconnected</span>
+        <button id="logout-btn">Sign Out</button>
+      </div>
+    </header>
+
+    <section>
+      <h2>Admit Patient</h2>
+      <form id="admit-form">
+        <div class="field">
+          <label for="name">Name</label>
+          <input id="name" type="text" placeholder="Full name" required>
+        </div>
+        <div class="field">
+          <label for="age">Age</label>
+          <input id="age" type="number" min="0" max="130" placeholder="0" required>
+        </div>
+        <div class="field">
+          <label for="level">Triage Level</label>
+          <select id="level">
+            <option value="ESI_1_IMMEDIATE">ESI 1 — Immediate</option>
+            <option value="ESI_2_EMERGENT">ESI 2 — Emergent</option>
+            <option value="ESI_3_URGENT" selected>ESI 3 — Urgent</option>
+            <option value="ESI_4_LESS_URGENT">ESI 4 — Less Urgent</option>
+            <option value="ESI_5_NON_URGENT">ESI 5 — Non-Urgent</option>
+          </select>
+        </div>
+        <button type="submit">Admit</button>
+      </form>
+      <div id="admit-msg"></div>
+    </section>
+
+    <div class="grid">
+      <section>
+        <h2>Waiting Queue</h2>
+        <table id="queue-table">
+          <thead>
+            <tr>
+              <th>Name</th><th>Age</th><th>ESI Level</th><th>Arrived</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <div class="updated" id="queue-ts"></div>
+      </section>
+
+      <section>
+        <h2>Treatment Rooms</h2>
+        <table id="rooms-table">
+          <thead>
+            <tr>
+              <th>Room</th><th>Status</th><th>Patient</th><th>Doctor</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <div class="updated" id="rooms-ts"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- SockJS + STOMP for WebSocket -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
   <script>
+    // ── Auth helpers ──────────────────────────────────────────────────
+    const getToken = () => localStorage.getItem('er_token');
+    const getRole  = () => localStorage.getItem('er_role');
+    const getUser  = () => localStorage.getItem('er_user');
+
+    function authHeaders() {
+      return { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' };
+    }
+
+    function showApp() {
+      document.getElementById('login-overlay').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      const role = getRole();
+      document.getElementById('user-label').innerHTML =
+        `${getUser()} <span class="badge badge-${role.toLowerCase()}">${role}</span>&nbsp;`;
+      applyRoleRestrictions(role);
+      connectWebSocket();
+      loadQueue();
+      loadRooms();
+      // Polling fallback — keeps data fresh even if WebSocket is unavailable
+      setInterval(loadQueue, 3000);
+      setInterval(loadRooms, 3000);
+    }
+
+    function applyRoleRestrictions(role) {
+      // DOCTOR role cannot admit patients (POST /patients requires NURSE or ADMIN)
+      if (role === 'DOCTOR') {
+        document.getElementById('admit-form').style.display = 'none';
+        document.querySelector('section:has(#admit-form) h2').textContent = 'Admit Patient (Doctor role: view only)';
+      }
+    }
+
+    // ── Login ─────────────────────────────────────────────────────────
+    async function doLogin() {
+      const username = document.getElementById('l-user').value.trim();
+      const password = document.getElementById('l-pass').value;
+      const err = document.getElementById('login-err');
+      err.textContent = '';
+      if (!username || !password) { err.textContent = 'Enter username and password.'; return; }
+
+      try {
+        const res = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          localStorage.setItem('er_token', data.token);
+          localStorage.setItem('er_role',  data.role);
+          localStorage.setItem('er_user',  data.username);
+          showApp();
+        } else {
+          err.textContent = 'Invalid username or password.';
+        }
+      } catch (e) {
+        err.textContent = 'Cannot reach server.';
+      }
+    }
+
+    document.getElementById('login-btn').addEventListener('click', doLogin);
+    document.getElementById('l-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      localStorage.removeItem('er_token');
+      localStorage.removeItem('er_role');
+      localStorage.removeItem('er_user');
+      if (stompClient) stompClient.disconnect();
+      document.getElementById('login-overlay').style.display = 'flex';
+      document.getElementById('app').style.display = 'none';
+    });
+
+    // Auto-login if token already stored
+    if (getToken()) showApp();
+
+    // ── WebSocket / STOMP ─────────────────────────────────────────────
+    let stompClient = null;
+
+    function connectWebSocket() {
+      const socket = new SockJS('/ws');
+      stompClient = Stomp.over(socket);
+      stompClient.debug = null; // silence console spam
+
+      stompClient.connect({}, () => {
+        document.getElementById('ws-status').textContent = '● Connected';
+        document.getElementById('ws-status').className = 'connected';
+
+        stompClient.subscribe('/topic/queue', () => loadQueue());
+        stompClient.subscribe('/topic/rooms', () => loadRooms());
+      }, () => {
+        document.getElementById('ws-status').textContent = '● Disconnected';
+        document.getElementById('ws-status').className = 'disconnected';
+        // Reconnect after 5 s
+        setTimeout(connectWebSocket, 5000);
+      });
+    }
+
+    // ── ESI helpers ───────────────────────────────────────────────────
     const ESI_LABEL = {
       ESI_1_IMMEDIATE:  'ESI 1 — Immediate',
       ESI_2_EMERGENT:   'ESI 2 — Emergent',
@@ -266,86 +356,73 @@
       ESI_4_LESS_URGENT:'ESI 4 — Less Urgent',
       ESI_5_NON_URGENT: 'ESI 5 — Non-Urgent',
     };
-
     const ESI_CLASS = {
-      ESI_1_IMMEDIATE:  'esi1',
-      ESI_2_EMERGENT:   'esi2',
-      ESI_3_URGENT:     'esi3',
-      ESI_4_LESS_URGENT:'esi4',
-      ESI_5_NON_URGENT: 'esi5',
+      ESI_1_IMMEDIATE: 'esi1', ESI_2_EMERGENT: 'esi2', ESI_3_URGENT: 'esi3',
+      ESI_4_LESS_URGENT: 'esi4', ESI_5_NON_URGENT: 'esi5',
     };
+    const ESI_VALUES = ['ESI_1_IMMEDIATE','ESI_2_EMERGENT','ESI_3_URGENT','ESI_4_LESS_URGENT','ESI_5_NON_URGENT'];
 
     function fmt(s) {
-      if (!s) return '—';
-      return s.replace(/_/g, ' ')
-              .toLowerCase()
-              .replace(/\b\w/g, c => c.toUpperCase());
+      return s ? s.replace(/_/g,' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase()) : '—';
     }
-
     function timeOf(iso) {
-      if (!iso) return '—';
-      return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      return iso ? new Date(iso).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}) : '—';
     }
-
     function stamp() {
-      return 'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      return 'Updated ' + new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
     }
-
-    function roomClass(status) {
-      if (status === 'AVAILABLE') return 'room-available';
-      if (status === 'OCCUPIED')  return 'room-occupied';
+    function roomClass(s) {
+      if (s === 'AVAILABLE') return 'room-available';
+      if (s === 'OCCUPIED')  return 'room-occupied';
       return 'room-cleaning';
     }
-
-    const ESI_VALUES = [
-      'ESI_1_IMMEDIATE', 'ESI_2_EMERGENT', 'ESI_3_URGENT',
-      'ESI_4_LESS_URGENT', 'ESI_5_NON_URGENT'
-    ];
-
-    function levelSelectHtml(currentLevel) {
-      return `<select class="level-select">${
-        ESI_VALUES.map(v =>
-          `<option value="${v}"${v === currentLevel ? ' selected' : ''}>${ESI_LABEL[v]}</option>`
-        ).join('')
-      }</select>`;
+    function levelSelectHtml(cur) {
+      return `<select class="level-select">${ESI_VALUES.map(v =>
+        `<option value="${v}"${v===cur?' selected':''}>${ESI_LABEL[v]}</option>`).join('')}</select>`;
     }
 
-    async function changeLevel(patientId, newLevel) {
-      await fetch(`/patients/${patientId}/level`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ newLevel }),
+    // ── Actions ───────────────────────────────────────────────────────
+    async function changeLevel(id, level) {
+      await fetch(`/patients/${id}/level`, {
+        method: 'PUT', headers: authHeaders(), body: JSON.stringify(level),
       });
       loadQueue();
     }
 
-    async function discharge(patientId) {
-      await fetch(`/patients/${patientId}`, { method: 'DELETE' });
-      loadRooms();
-      loadQueue();
+    async function discharge(id) {
+      await fetch(`/patients/${id}`, { method: 'DELETE', headers: authHeaders() });
+      loadRooms(); loadQueue();
     }
 
+    // ── Queue ─────────────────────────────────────────────────────────
     async function loadQueue() {
       const tbody = document.querySelector('#queue-table tbody');
       try {
-        const res = await fetch('/queue');
+        const res  = await fetch('/queue', { headers: authHeaders() });
+        if (res.status === 401) { handleUnauth(); return; }
         const data = await res.json();
         tbody.innerHTML = '';
         if (!data.length) {
           tbody.innerHTML = '<tr><td colspan="5" class="empty">No patients waiting</td></tr>';
         } else {
+          const role = getRole();
           data.forEach(p => {
             const tr = document.createElement('tr');
+            // NURSE and ADMIN can change level; DOCTOR gets a label only
+            const actionsCell = (role === 'NURSE' || role === 'ADMIN')
+              ? `<td style="white-space:nowrap">${levelSelectHtml(p.triageLevel)}&nbsp;<button class="btn-sm">Set</button></td>`
+              : `<td>—</td>`;
             tr.innerHTML =
-              `<td>${p.name || '—'}</td>` +
-              `<td>${p.age != null ? p.age : '—'}</td>` +
-              `<td class="${ESI_CLASS[p.triageLevel] || ''}">${ESI_LABEL[p.triageLevel] || p.triageLevel || '—'}</td>` +
+              `<td>${p.name||'—'}</td>` +
+              `<td>${p.age!=null?p.age:'—'}</td>` +
+              `<td class="${ESI_CLASS[p.triageLevel]||''}">${ESI_LABEL[p.triageLevel]||p.triageLevel||'—'}</td>` +
               `<td>${timeOf(p.arrivalTime)}</td>` +
-              `<td style="white-space:nowrap">${levelSelectHtml(p.triageLevel)}&nbsp;<button class="btn-sm" data-id="${p.patientId}">Set</button></td>`;
-            tr.querySelector('button').addEventListener('click', () => {
-              const sel = tr.querySelector('select.level-select');
-              changeLevel(p.patientId, sel.value);
-            });
+              actionsCell;
+            if (role === 'NURSE' || role === 'ADMIN') {
+              tr.querySelector('button').addEventListener('click', () => {
+                changeLevel(p.patientId, tr.querySelector('select').value);
+              });
+            }
             tbody.appendChild(tr);
           });
         }
@@ -355,30 +432,32 @@
       }
     }
 
+    // ── Rooms ─────────────────────────────────────────────────────────
     async function loadRooms() {
       const tbody = document.querySelector('#rooms-table tbody');
       try {
-        const res = await fetch('/rooms');
+        const res  = await fetch('/rooms', { headers: authHeaders() });
+        if (res.status === 401) { handleUnauth(); return; }
         const data = await res.json();
         tbody.innerHTML = '';
         if (!data.length) {
           tbody.innerHTML = '<tr><td colspan="5" class="empty">No rooms configured</td></tr>';
         } else {
+          const role = getRole();
           data.forEach(r => {
-            const tr = document.createElement('tr');
-            const actionCell = r.status === 'OCCUPIED' && r.currentPatientId
+            const canDischarge = (role === 'ADMIN' || role === 'DOCTOR') && r.status === 'OCCUPIED' && r.currentPatientId;
+            const actionCell = canDischarge
               ? `<button class="btn-sm btn-discharge" data-id="${r.currentPatientId}">Discharge</button>`
               : '—';
+            const tr = document.createElement('tr');
             tr.innerHTML =
-              `<td>${r.roomId || '—'}</td>` +
+              `<td>${r.roomId||'—'}</td>` +
               `<td class="${roomClass(r.status)}">${fmt(r.status)}</td>` +
-              `<td>${r.currentPatientName || '—'}</td>` +
-              `<td>${r.doctorName || '—'}</td>` +
+              `<td>${r.currentPatientName||'—'}</td>` +
+              `<td>${r.doctorName||'—'}</td>` +
               `<td>${actionCell}</td>`;
-            if (r.status === 'OCCUPIED' && r.currentPatientId) {
-              tr.querySelector('.btn-discharge').addEventListener('click', () => {
-                discharge(r.currentPatientId);
-              });
+            if (canDischarge) {
+              tr.querySelector('.btn-discharge').addEventListener('click', () => discharge(r.currentPatientId));
             }
             tbody.appendChild(tr);
           });
@@ -389,11 +468,17 @@
       }
     }
 
+    function handleUnauth() {
+      localStorage.removeItem('er_token');
+      document.getElementById('login-overlay').style.display = 'flex';
+      document.getElementById('app').style.display = 'none';
+    }
+
+    // ── Admit form ────────────────────────────────────────────────────
     document.getElementById('admit-form').addEventListener('submit', async e => {
       e.preventDefault();
       const msg = document.getElementById('admit-msg');
-      msg.className = '';
-      msg.textContent = 'Admitting…';
+      msg.className = ''; msg.textContent = 'Admitting…';
 
       const body = {
         patientId:   crypto.randomUUID(),
@@ -404,31 +489,27 @@
 
       try {
         const res = await fetch('/patients', {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify(body),
+          method: 'POST', headers: authHeaders(), body: JSON.stringify(body),
         });
         if (res.ok) {
           const p = await res.json();
           msg.className = 'ok';
-          msg.textContent = `Admitted: ${p.name}, ${ESI_LABEL[p.triageLevel] || p.triageLevel}`;
+          msg.textContent = `Admitted: ${p.name}, ${ESI_LABEL[p.triageLevel]||p.triageLevel}`;
           document.getElementById('name').value = '';
           document.getElementById('age').value  = '';
           loadQueue();
+        } else if (res.status === 401 || res.status === 403) {
+          msg.className = 'err';
+          msg.textContent = 'Not authorized for this action.';
         } else {
           msg.className = 'err';
-          msg.textContent = `Error ${res.status}: ${res.statusText}`;
+          msg.textContent = `Error ${res.status}`;
         }
       } catch (err) {
         msg.className = 'err';
         msg.textContent = 'Network error — ' + err.message;
       }
     });
-
-    loadQueue();
-    loadRooms();
-    setInterval(loadQueue, 4000);
-    setInterval(loadRooms, 4000);
   </script>
 </body>
 </html>
