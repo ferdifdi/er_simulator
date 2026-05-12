@@ -2,15 +2,17 @@ package com.ersim.concurrent;
 
 import com.ersim.model.Doctor;
 import com.ersim.model.Patient;
-import com.ersim.model.enums.EventType;
-import com.ersim.model.enums.PatientStatus;
 import com.ersim.model.enums.RoomStatus;
 import com.ersim.service.TriageService;
 
 /**
  * A TreatmentRoom worker thread. Each instance pulls the highest-priority
  * patient off the shared TriageQueue, simulates treatment via its assigned
- * Doctor, then discharges the patient and becomes AVAILABLE again.
+ * Doctor, then releases the room and becomes AVAILABLE again.
+ *
+ * Room state changes go through synchronized assignPatient/releaseRoom so
+ * the room worker thread and any HTTP-driven manual-discharge thread can
+ * never both "discharge" the same patient.
  */
 public class TreatmentRoom implements Runnable {
 
@@ -18,8 +20,8 @@ public class TreatmentRoom implements Runnable {
     private final TriageQueue queue;
     private final Doctor doctor;
     private final TriageService service;
-    private volatile Patient currentPatient;
-    private volatile RoomStatus status = RoomStatus.AVAILABLE;
+    private Patient currentPatient;
+    private RoomStatus status = RoomStatus.AVAILABLE;
     private volatile boolean running = true;
 
     public TreatmentRoom(String roomId, TriageQueue queue, Doctor doctor) {
@@ -39,50 +41,54 @@ public class TreatmentRoom implements Runnable {
             try {
                 Patient p = queue.dequeue();
                 if (p == null) continue;
-                assignPatient(p);
+                if (service != null) {
+                    service.onRoomAssigned(this, p);
+                } else {
+                    assignPatient(p);
+                }
                 if (doctor != null) doctor.treat(p);
-                discharge();
+                if (service != null) {
+                    service.onTreatmentComplete(this);
+                } else {
+                    releaseRoom();
+                }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 running = false;
+            } catch (Exception e) {
+                System.err.println("[TreatmentRoom " + roomId + "] error: " + e.getMessage());
+                releaseRoom();
             }
         }
     }
 
     /**
-     * Mark this room OCCUPIED and store the current patient.
+     * Mark this room OCCUPIED with the given patient. Pure in-memory state
+     * change — persistence and event logging are the service's job.
      */
-    public void assignPatient(Patient p) {
+    public synchronized void assignPatient(Patient p) {
         this.currentPatient = p;
         this.status = RoomStatus.OCCUPIED;
-        if (p != null) {
-            p.setStatus(PatientStatus.IN_TREATMENT);
-            if (service != null) {
-                service.logEvent(p, EventType.ROOM_ASSIGNED, roomId);
-                service.logEvent(p, EventType.TREATMENT_STARTED, roomId);
-            }
-        }
     }
 
     /**
-     * Free the room, set patient status DISCHARGED, log event.
+     * Atomically release the room. Returns the patient that was occupying
+     * the room, or {@code null} if the room was already free. This is the
+     * single synchronization point that lets the worker thread and the
+     * HTTP-driven manual-discharge thread coordinate: whoever calls first
+     * gets the patient back; the other gets null and does nothing.
      */
-    public void discharge() {
-        Patient finished = this.currentPatient;
-        if (finished != null) {
-            finished.setStatus(PatientStatus.DISCHARGED);
-            if (service != null) {
-                service.logEvent(finished, EventType.DISCHARGED, roomId);
-            }
-        }
+    public synchronized Patient releaseRoom() {
+        Patient released = this.currentPatient;
         this.currentPatient = null;
         this.status = RoomStatus.AVAILABLE;
+        return released;
     }
 
     /**
      * Snapshot of the room's current state for /rooms endpoint and GUI.
      */
-    public RoomStatusSnapshot getRoomStatus() {
+    public synchronized RoomStatusSnapshot getRoomStatus() {
         RoomStatusSnapshot snap = new RoomStatusSnapshot();
         snap.roomId = roomId;
         snap.status = status;
@@ -94,8 +100,8 @@ public class TreatmentRoom implements Runnable {
     }
 
     public String getRoomId() { return roomId; }
-    public RoomStatus getStatus() { return status; }
-    public Patient getCurrentPatient() { return currentPatient; }
+    public synchronized RoomStatus getStatus() { return status; }
+    public synchronized Patient getCurrentPatient() { return currentPatient; }
     public Doctor getDoctor() { return doctor; }
 
     public void stop() { this.running = false; }
