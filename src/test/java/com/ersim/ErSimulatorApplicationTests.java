@@ -8,8 +8,8 @@ import org.springframework.boot.test.context.SpringBootTest;
  * Sanity check that all beans wire together correctly.
  */
 @SpringBootTest(properties = {
-        "er.rooms.count=0",
-        "er.simulation.autostart=false"
+        "ersim.rooms.count=0",
+        "ersim.simulation.autostart=false"
 })
 class ErSimulatorApplicationTests {
 
