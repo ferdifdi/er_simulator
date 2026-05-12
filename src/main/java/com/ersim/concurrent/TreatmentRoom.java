@@ -88,6 +88,7 @@ public class TreatmentRoom implements Runnable {
         snap.status = status;
         Patient cp = currentPatient;
         snap.currentPatientName = cp != null ? cp.getName() : null;
+        snap.currentPatientId   = cp != null ? cp.getPatientId() : null;
         snap.doctorName = doctor != null ? doctor.getName() : null;
         return snap;
     }
@@ -104,6 +105,7 @@ public class TreatmentRoom implements Runnable {
         public String roomId;
         public RoomStatus status;
         public String currentPatientName;
+        public String currentPatientId;
         public String doctorName;
     }
 }
