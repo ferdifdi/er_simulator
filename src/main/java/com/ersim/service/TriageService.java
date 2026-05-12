@@ -30,6 +30,12 @@ import java.util.concurrent.TimeUnit;
 /**
  * Central service that coordinates patient intake, room assignment,
  * triage updates, and discharges. Owns the TreatmentRoom thread pool.
+ *
+ * The service is the single source of truth for persistence and event
+ * logging. TreatmentRoom is just an in-memory state holder — it calls
+ * back into onRoomAssigned/onTreatmentComplete so we never log the
+ * same event twice and we never race the manual-discharge HTTP path
+ * against the auto-discharge worker-thread path.
  */
 @Service
 public class TriageService {
@@ -101,22 +107,52 @@ public class TriageService {
     }
 
     /**
-     * Assign waiting patient to a specific room. Usually called internally
-     * by TreatmentRoom workers, but exposed for manual override.
+     * Worker-thread callback: room just picked a patient off the queue.
+     * Performs the assign, persists IN_TREATMENT, logs ROOM_ASSIGNED and
+     * TREATMENT_STARTED, broadcasts.
+     */
+    public void onRoomAssigned(TreatmentRoom room, Patient patient) {
+        if (room == null || patient == null) return;
+        room.assignPatient(patient);
+        patient.setStatus(PatientStatus.IN_TREATMENT);
+        patientRepository.save(patient);
+        logEvent(patient, EventType.ROOM_ASSIGNED, room.getRoomId());
+        logEvent(patient, EventType.TREATMENT_STARTED, room.getRoomId());
+        broadcaster.broadcastQueue();
+        broadcaster.broadcastRoomStatus();
+    }
+
+    /**
+     * Worker-thread callback: doctor finished treating. Atomically release
+     * the room. If we actually held a patient, finalize the discharge.
+     * If the patient was already manually discharged via the HTTP path,
+     * releaseRoom returns null and this is a no-op.
+     */
+    public void onTreatmentComplete(TreatmentRoom room) {
+        if (room == null) return;
+        Patient released = room.releaseRoom();
+        if (released == null) return;
+        finalizeDischarge(released, room.getRoomId());
+    }
+
+    /**
+     * Manually assign a waiting patient to a specific room. Exposed for
+     * manual override.
      */
     public void assignRoom(Patient patient, String roomId) {
         if (patient == null || roomId == null) return;
         for (TreatmentRoom r : rooms) {
             if (roomId.equals(r.getRoomId())) {
-                r.assignPatient(patient);
-                broadcaster.broadcastRoomStatus();
+                onRoomAssigned(r, patient);
                 return;
             }
         }
     }
 
     /**
-     * Discharge patient from a room: persist status, log DISCHARGED, broadcast.
+     * HTTP-driven discharge. Atomically release the room (if the patient
+     * is in one), then finalize. Idempotent against the worker-thread
+     * auto-discharge — releaseRoom returns the patient at most once.
      */
     public void dischargePatient(String patientId) {
         if (patientId == null) return;
@@ -124,24 +160,43 @@ public class TriageService {
         for (TreatmentRoom r : rooms) {
             Patient cp = r.getCurrentPatient();
             if (cp != null && patientId.equals(cp.getPatientId())) {
-                r.discharge();
-                break;
+                Patient released = r.releaseRoom();
+                if (released != null) {
+                    finalizeDischarge(released, r.getRoomId());
+                    return;
+                }
             }
         }
 
+        // Not in any room — finalize from the DB if not already discharged
         patientRepository.findById(patientId).ifPresent(p -> {
             if (p.getStatus() != PatientStatus.DISCHARGED) {
-                p.setStatus(PatientStatus.DISCHARGED);
-                patientRepository.save(p);
-                logEvent(p, EventType.DISCHARGED, null);
+                finalizeDischarge(p, null);
             }
         });
-        broadcaster.broadcastRoomStatus();
     }
 
     /**
-     * Upgrade a patient's ESI level (e.g., from 3 to 1). Must
-     * re-prioritize them in the queue.
+     * Single discharge-finalization path: set status, persist, log, broadcast.
+     * Called exactly once per patient across both the worker-thread auto-
+     * discharge and the HTTP manual-discharge paths.
+     */
+    private void finalizeDischarge(Patient p, String roomId) {
+        if (p == null) return;
+        p.setStatus(PatientStatus.DISCHARGED);
+        try {
+            patientRepository.save(p);
+        } catch (Exception e) {
+            System.err.println("[TriageService] failed to persist discharge for "
+                    + p.getPatientId() + ": " + e.getMessage());
+        }
+        logEvent(p, EventType.DISCHARGED, roomId);
+        broadcaster.broadcastRoomStatus();
+        broadcaster.broadcastQueue();
+    }
+
+    /**
+     * Upgrade a patient's ESI level. Re-prioritizes in the queue.
      */
     public void upgradeTriageLevel(String patientId, TriageLevel newLevel) {
         if (patientId == null || newLevel == null) return;
@@ -154,25 +209,16 @@ public class TriageService {
         broadcaster.broadcastQueue();
     }
 
-    /**
-     * Snapshot of the queue (for REST /queue and GUI).
-     */
     public List<Patient> getQueueStatus() {
         return queue.getQueueSnapshot();
     }
 
-    /**
-     * Snapshot of all rooms (for REST /rooms and GUI).
-     */
     public List<TreatmentRoom.RoomStatusSnapshot> getRoomStatus() {
         List<TreatmentRoom.RoomStatusSnapshot> snaps = new ArrayList<>(rooms.size());
         for (TreatmentRoom r : rooms) snaps.add(r.getRoomStatus());
         return snaps;
     }
 
-    /**
-     * Aggregate report for /report endpoint: avg wait, throughput, counts.
-     */
     public Object getReport() {
         Map<String, Object> report = new HashMap<>();
         report.put("queueSize", queue.size());
@@ -189,12 +235,21 @@ public class TriageService {
     }
 
     /**
-     * Internal helper: persist a TriageEventLog entry. Public so worker
-     * threads (TreatmentRoom) can publish their own events.
+     * Persist a TriageEventLog entry and broadcast it. Swallows broadcast
+     * failures so a flaky WebSocket can't stop triage operations.
      */
     public void logEvent(Patient p, EventType type, String roomId) {
-        TriageEventLog log = new TriageEventLog(p, type, roomId);
-        logRepository.save(log);
-        broadcaster.broadcastEvent(log);
+        try {
+            TriageEventLog log = new TriageEventLog(p, type, roomId);
+            logRepository.save(log);
+            try {
+                broadcaster.broadcastEvent(log);
+            } catch (Exception ignored) {
+                // Non-fatal: broadcast failure must not stop triage operations
+            }
+        } catch (Exception e) {
+            System.err.println("[TriageService] failed to log event "
+                    + type + " for " + (p != null ? p.getPatientId() : "null") + ": " + e.getMessage());
+        }
     }
 }
