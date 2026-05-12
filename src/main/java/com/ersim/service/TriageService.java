@@ -39,10 +39,10 @@ public class TriageService {
     @Autowired private TriageEventLogRepository logRepository;
     @Autowired private WebSocketBroadcaster broadcaster;
 
-    @Value("${er.rooms.count:3}")
+    @Value("${ersim.rooms.count:3}")
     private int roomsCount;
 
-    @Value("${er.simulation.autostart:true}")
+    @Value("${ersim.simulation.autostart:true}")
     private boolean autostart;
 
     private ExecutorService roomPool;
@@ -62,7 +62,7 @@ public class TriageService {
             }
         }
         if (autostart) {
-            arrivalRunnable = new PatientArrivalThread(queue);
+            arrivalRunnable = new PatientArrivalThread(this::admitPatient);
             arrivalThread = new Thread(arrivalRunnable, "patient-arrival");
             arrivalThread.setDaemon(true);
             arrivalThread.start();
